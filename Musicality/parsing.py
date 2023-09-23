@@ -9,7 +9,11 @@ async def getAudio() -> (dict, str):
 
     data = soup.find_all('li', class_ = 'item')
 
+    print(data)
+
     rand_Item = random.randint(0, 109)
+
+    print(rand_Item)
 
     info = {
         'artist' : data[rand_Item].find('span', class_ = 'artist').text, 
