@@ -5,6 +5,8 @@ import requests, random, config
 async def getAudio() -> (dict, str):
     page = requests.get(config.URL + str(random.randint(1, 10)))
 
+    print(page)
+
     soup = BeautifulSoup(page.text, 'html.parser')
 
     data = soup.find_all('li', class_ = 'item')
