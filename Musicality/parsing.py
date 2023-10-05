@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-import requests, random, config
+import requests, re, random, config
 
 
 async def getAudio() -> (dict, str):
@@ -30,13 +30,20 @@ async def get_list_button_items(class_tag, object) -> list:
 
     unique_data_array = list()
 
-    counter = 0
+    counter = config.QUANTITY_VARIANTS_ANSWER - 1
 
-    while counter < config.QUANTITY_VARIANTS_ANSWER - 1:
-        item = data[random.randint(0, len(data))]
-        if (item not in unique_data_array) and (item != object.SONG_INFO[class_tag]) \
-        and (counter < config.QUANTITY_VARIANTS_ANSWER - 1):
-            unique_data_array.append(item)
-            counter += 1
+    while counter > 0:
+        item = data[random.randint(0, len(data) - 1)]
+
+        if re.findall(r'[a-zA-Z]', object.SONG_INFO[class_tag]):
+            if (item not in unique_data_array) and (item != object.SONG_INFO[class_tag]) \
+                and (re.findall(r'[a-zA-Z]', item)):
+                    unique_data_array.append(item)
+                    counter -= 1
+        else:
+            if (item not in unique_data_array) and (item != object.SONG_INFO[class_tag]) \
+                and (re.findall(r'[а-яА-Я]', item)):
+                    unique_data_array.append(item)
+                    counter -= 1
 
     return unique_data_array

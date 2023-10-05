@@ -80,7 +80,6 @@ async def startGame(message: types.Message):
 
         if b'TIT2' in response:
             track = response[:response.find(b'TIT2') + 4] + response[response.find(b'TPE1'):]
-
         else:
             track = response[:response.find(b'TSSE')] + b'TIT2' + response[response.find(b'TSSE'):]
 
@@ -93,13 +92,13 @@ async def startGame(message: types.Message):
         )
 
     elif message.text == 'Ответить':
-        keyboard_track = await make_keyboard(call = message, tag = 'track')
+        keyboard_artist = await make_keyboard(call = message, tag = 'artist')
 
         await message.answer('Попробуйте угадать название песни', reply_markup=types.ReplyKeyboardRemove())
 
         await message.answer(
-            text = 'Выберите название песни', 
-            reply_markup = keyboard_track
+            text = 'Выберите исполнителя', 
+            reply_markup = keyboard_artist
         )
 
     elif message.text == 'Не знаю':
@@ -149,29 +148,26 @@ async def send_wrong_message(call) -> None:
     config.DICT_USER_INSTANCE[call.message.chat.id].wrong_answer += 1
 
 
-@dp.callback_query_handler(lambda call: call.data.startswith('btn-track'))
+@dp.callback_query_handler(lambda call: call.data.startswith('btn-artist'))
 async def pushed_button_track(callback_query: types.CallbackQuery):
     await delete_msg_with_keyboard(call = callback_query)
 
-    if await check_answer(callback_query, tag = 'track'):
-        keyboard_artist = await make_keyboard(call = callback_query, tag = 'artist')
-
-        await callback_query.message.answer('А теперь исполнителя', reply_markup=types.ReplyKeyboardRemove())
+    if await check_answer(callback_query, tag = 'artist'):
+        keyboard_track = await make_keyboard(call = callback_query, tag = 'track')
 
         await callback_query.message.answer(
-            text = 'Выберите исполнителя', 
-            reply_markup = keyboard_artist
+            text = 'Выберите название песни', 
+            reply_markup = keyboard_track
         )
     else:
         await send_wrong_message(call = callback_query)
 
 
-@dp.callback_query_handler(lambda call: call.data.startswith('btn-artist'))
+@dp.callback_query_handler(lambda call: call.data.startswith('btn-track'))
 async def pushed_button_artist(callback_query: types.CallbackQuery):
     await delete_msg_with_keyboard(call = callback_query)
 
-    if await check_answer(callback_query, tag = 'artist'):
-
+    if await check_answer(callback_query, tag = 'track'):
         await callback_query.message.answer(
             text = 'Вы ответили правильно!'
         )
@@ -179,7 +175,8 @@ async def pushed_button_artist(callback_query: types.CallbackQuery):
         user_object = config.DICT_USER_INSTANCE[callback_query.message.chat.id]
 
         await callback_query.message.answer(
-            text = f'Это {user_object.SONG_INFO["artist"]} - {user_object.SONG_INFO["track"]}', 
+            text = f'Название песни: {user_object.SONG_INFO["track"]}\n' + 
+                f'Исполнитель: {user_object.SONG_INFO["artist"]}', 
             reply_markup = await SwitchKeyboardMarkup('generate')
         )
 
@@ -189,4 +186,4 @@ async def pushed_button_artist(callback_query: types.CallbackQuery):
 
 
 if __name__ == '__main__':
-    executor.start_polling(dispatcher = dp)
+    executor.start_polling(dispatcher = dp, skip_updates = True)
